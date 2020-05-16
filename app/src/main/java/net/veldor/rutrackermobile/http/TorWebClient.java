@@ -304,19 +304,20 @@ public class TorWebClient {
         try {
             HttpResponse result = executeGetRequest(url);
             if (result != null) {
-                String filename = "noname.torrent";
+                String filename = "noname";
                 Header[] headers = result.getAllHeaders();
                 for (Header h : headers) {
                     if (h.getName().equals("Content-Disposition")) {
                         // получу имя файла
                         filename = URLDecoder.decode(h.getValue().substring(h.getValue().indexOf("filename*=UTF-8''") + 17), "UTF-8");
+                        filename = filename.substring(0, filename.lastIndexOf("."));
                     }
                 }
 
                 DocumentFile path = Preferences.getInstance().getDownloadFolder();
                 if(path != null){
 // проверю, не сохдан ли уже файл, если создан- удалю
-                    DocumentFile existentFile = path.findFile(filename);
+                    DocumentFile existentFile = path.findFile(filename + ".torrent");
                     if (existentFile != null) {
                         existentFile.delete();
                     }

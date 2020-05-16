@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -13,6 +14,8 @@ import androidx.documentfile.provider.DocumentFile;
 import net.veldor.rutrackermobile.App;
 import net.veldor.rutrackermobile.utils.TorrentOpener;
 import net.veldor.rutrackermobile.utils.TorrentSharer;
+
+import java.io.File;
 
 
 public class TorrentActionsReceiver extends BroadcastReceiver {

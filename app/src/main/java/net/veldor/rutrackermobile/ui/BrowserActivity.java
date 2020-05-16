@@ -628,4 +628,34 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
             }
         }, 2000);
     }
+
+    public void showDownloadTorrentIntro() {
+        mRecycler.scrollToPosition(0);
+        // попробую найти первый элемент в Recycler.
+        View firstValue = mRecycler.getChildAt(0);
+        if (firstValue != null) {
+            // если он найден- найду в нём раздел скачивания торрента и удостоверюсь,
+            // что он активирован
+            View downloadTorrentView = firstValue.findViewById(R.id.torrentDownloadContainer);
+            if(downloadTorrentView != null && downloadTorrentView.getVisibility() == View.VISIBLE){
+                new MaterialIntroView.Builder(BrowserActivity.this)
+                        .enableDotAnimation(true)
+                        .enableIcon(false)
+                        .setFocusGravity(FocusGravity.CENTER)
+                        .setFocusType(Focus.MINIMUM)
+                        .setIdempotent(false)
+                        .enableFadeAnimation(true)
+                        .performClick(true)
+                        .setInfoText("Нажмите на меня, чтобы загрузить торрент")
+                        .setTarget(downloadTorrentView)
+                        .setShape(ShapeType.RECTANGLE)
+                        .setUsageId("fast download torrent use intro") //THIS SHOULD BE UNIQUE ID
+                        .show();
+                Preferences.getInstance().setTorrentDownloadIntroViewed();
+            }
+            else{
+                Log.d("surprise", "BrowserActivity showDownloadTorrentIntro: can't found download view");
+            }
+        }
+    }
 }

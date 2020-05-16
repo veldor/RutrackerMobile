@@ -113,6 +113,10 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
             ConstraintLayout torrentDlView = mView.findViewById(R.id.torrentDownloadContainer);
             if (torrentDlView != null) {
                 if (mItem.getTorrentUrl() != null) {
+                    // покажу подсказку по скачиванию торрента
+                    if(!Preferences.getInstance().isTorrentDownloadIntroViewed() && Preferences.getInstance().isBrowserContextIntroShowed() && Preferences.getInstance().isRecyclerIntroViewed()){
+                        mActivity.showDownloadTorrentIntro();
+                    }
                     torrentDlView.setVisibility(View.VISIBLE);
                     torrentDlView.setOnClickListener(new View.OnClickListener() {
                         @Override

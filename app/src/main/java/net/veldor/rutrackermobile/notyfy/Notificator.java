@@ -57,13 +57,13 @@ public class Notificator {
     }
 
     public void sendTorrentLoadedNotification(DocumentFile torrent) {
-
         String torrentUri = torrent.getUri().toString();
         // создам интент для функции отправки файла
         Intent shareIntent = new Intent(mContext, TorrentActionsReceiver.class);
         shareIntent.putExtra(TorrentActionsReceiver.EXTRA_ACTION_TYPE, TorrentActionsReceiver.ACTION_TYPE_SHARE);
         shareIntent.putExtra(TorrentActionsReceiver.TORRENT_URI, torrentUri);
         shareIntent.putExtra(TorrentActionsReceiver.EXTRA_NOTIFICATION_ID, mLastNotificationId);
+        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         PendingIntent sharePendingIntent = PendingIntent.getBroadcast(mContext, START_SHARING_REQUEST_CODE, shareIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         // создам интент для функции открытия файла
@@ -72,6 +72,7 @@ public class Notificator {
         openIntent.putExtra(TorrentActionsReceiver.EXTRA_ACTION_TYPE, TorrentActionsReceiver.ACTION_TYPE_OPEN);
         openIntent.putExtra(TorrentActionsReceiver.TORRENT_URI, torrentUri);
         openIntent.putExtra(TorrentActionsReceiver.EXTRA_NOTIFICATION_ID, mLastNotificationId);
+        openIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         PendingIntent openPendingIntent = PendingIntent.getBroadcast(mContext, START_OPEN_REQUEST_CODE, openIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(mContext, DOWNLOADED_TORRENT_CHANNEL_ID)

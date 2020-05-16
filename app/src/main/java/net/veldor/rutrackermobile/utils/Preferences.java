@@ -21,6 +21,7 @@ public class Preferences {
     private static final String SEARCH_INTRO_SHOWED = "search intro showed";
     private static final String RECYCLER_INTRO_SHOWED = "recycler intro showed";
     private static final String HOME_INTRO_SHOWED = "home intro showed";
+    private static final String DOWNLOAD_TORRENT_INTRO_SHOWED = "download torrent intro showed";
     private static Preferences instance;
     public final SharedPreferences mSharedPreferences;
 
@@ -117,5 +118,12 @@ public class Preferences {
 
     public void setHomeIntroShowed() {
         mSharedPreferences.edit().putBoolean(HOME_INTRO_SHOWED, true).apply();
+    }
+
+    public boolean isTorrentDownloadIntroViewed() {
+        return mSharedPreferences.getBoolean(DOWNLOAD_TORRENT_INTRO_SHOWED, false);
+    }
+    public void setTorrentDownloadIntroViewed() {
+        mSharedPreferences.edit().putBoolean(DOWNLOAD_TORRENT_INTRO_SHOWED, true).apply();
     }
 }
