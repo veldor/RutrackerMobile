@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
@@ -45,6 +46,12 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import co.mobiwise.materialintro.animation.MaterialIntroListener;
+import co.mobiwise.materialintro.shape.Focus;
+import co.mobiwise.materialintro.shape.FocusGravity;
+import co.mobiwise.materialintro.shape.ShapeType;
+import co.mobiwise.materialintro.view.MaterialIntroView;
+
 public class BrowserActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
     public static int sPagesCount;
     public static ArrayList<String> sSearchResultsArray;
@@ -62,6 +69,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
     private ConstraintLayout mPagerRoot;
     private ImageButton mBackButton, mForwardButton;
     private RecyclerView mRecycler;
+    private View mHomeView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -89,16 +97,15 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                         return;
                     }
                 }
-                if(sSearchResultsArray != null && sSearchResultsArray.size() > 0){
+                if (sSearchResultsArray != null && sSearchResultsArray.size() > 0) {
                     int counter = 0;
-                    while (counter <= sSearchResultsArray.size()){
+                    while (counter <= sSearchResultsArray.size()) {
                         counter++;
-                        if(sCurrentPage == counter){
+                        if (sCurrentPage == counter) {
                             loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(counter - 1) + "&nm=" + sLastSearchString, false);
-                            if(counter == 1){
+                            if (counter == 1) {
                                 sCurrentPage = 1;
-                            }
-                            else{
+                            } else {
                                 sCurrentPage = counter - 1;
                             }
                             return;
@@ -126,11 +133,11 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                     }
                     return;
                 }
-                if(sSearchResultsArray != null && sSearchResultsArray.size() > 0){
+                if (sSearchResultsArray != null && sSearchResultsArray.size() > 0) {
                     int counter = 0;
-                    while (counter <= sSearchResultsArray.size()){
+                    while (counter <= sSearchResultsArray.size()) {
                         counter++;
-                        if(sCurrentPage == counter){
+                        if (sCurrentPage == counter) {
                             loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(counter + 1) + "&nm=" + sLastSearchString, false);
                             sCurrentPage = counter + 1;
                             return;
@@ -146,16 +153,14 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
         mMyViewModel = new ViewModelProvider(this).get(BrowserViewModel.class);
         // получу данные стартовой страницы
 
-        if(App.getInstance().externalUrl != null){
-            if(App.getInstance().externalUrl.startsWith("https://rutracker.org/forum/viewtopic.php?t=")){
+        if (App.getInstance().externalUrl != null) {
+            if (App.getInstance().externalUrl.startsWith("https://rutracker.org/forum/viewtopic.php?t=")) {
                 viewTopic(App.getInstance().externalUrl);
-            }
-            else{
+            } else {
                 loadPage(App.getInstance().externalUrl, true);
             }
             App.getInstance().externalUrl = null;
-        }
-        else if (sFirstLoad) {
+        } else if (sFirstLoad) {
             loadPage(App.RUTRACKER_MAIN_PAGE, true);
             sFirstLoad = false;
         }
@@ -164,6 +169,43 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
         // буду отслеживать результаты загрузки страниц
         setupObservers();
         prepareSearch();
+
+        showGuide();
+    }
+
+    private void showGuide() {
+        // если гайд ещё не отображался
+        if (!Preferences.getInstance().isSearchIntroShowed() && Preferences.getInstance().isRecyclerIntroViewed()) {
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (mSearchView != null) {
+                        // укажу на поле поиска
+                        new MaterialIntroView.Builder(BrowserActivity.this)
+                                .enableDotAnimation(false)
+                                .enableIcon(false)
+                                .setFocusGravity(FocusGravity.CENTER)
+                                .setFocusType(Focus.MINIMUM)
+                                .setDelayMillis(500)
+                                .enableFadeAnimation(true)
+                                .performClick(false)
+                                .setListener(new MaterialIntroListener() {
+                                    @Override
+                                    public void onUserClicked(String materialIntroViewId) {
+                                        mSearchView.setIconified(false);
+                                        mSearchView.requestFocus();
+                                    }
+                                })
+                                .setInfoText("Это поле поиска. Напишите сюда. что вы хотите найти")
+                                .setTarget(mSearchView)
+                                .setShape(ShapeType.CIRCLE)
+                                .show();
+                        Preferences.getInstance().setSearchIntroShowed();
+                    }
+                }
+            }, 1000);
+        }
     }
 
     private void prepareSearch() {
@@ -182,6 +224,12 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                     // обработаю данные и получу список элементов для отображения
                     ArrayList<ViewListItem> data = (new PageParser()).parsePage(s);
                     mAdapter.setItems(data);
+                    if (!Preferences.getInstance().isRecyclerIntroViewed()) {
+                        showRecyclerIntro();
+                    }
+                    else if(Preferences.getInstance().isRecyclerIntroViewed() && Preferences.getInstance().isSearchIntroShowed() && !Preferences.getInstance().isHomeIntroViewed()){
+                        showHomeIntro();
+                    }
                     drawPages();
                     hidePageLoadDialog();
                 }
@@ -254,21 +302,19 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
             } else {
                 mForwardButton.setEnabled(true);
             }
-        }
-        else if(sSearchResultsArray != null && sSearchResultsArray.size() > 0){
+        } else if (sSearchResultsArray != null && sSearchResultsArray.size() > 0) {
             mPagerRoot.setVisibility(View.VISIBLE);
             Button button;
             // добавлю данные в меню
             int pageNumber = 0;
             int countedPage = 0;
-            while (pageNumber <= sSearchResultsArray.size()){
+            while (pageNumber <= sSearchResultsArray.size()) {
                 ++pageNumber;
-                if(pageNumber == sCurrentPage){
+                if (pageNumber == sCurrentPage) {
                     button = (Button) getLayoutInflater().inflate(R.layout.current_pager_button, mPager, false);
                     button.setText(String.valueOf(sCurrentPage));
                     mPager.addView(button);
-                }
-                else{
+                } else {
                     // создам кнопку и добавлю её к списку
                     button = (Button) getLayoutInflater().inflate(R.layout.pager_button, mPager, false);
                     button.setText(String.valueOf(pageNumber));
@@ -298,8 +344,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
             } else {
                 mForwardButton.setEnabled(true);
             }
-        }
-        else {
+        } else {
             mPagerRoot.setVisibility(View.GONE);
         }
     }
@@ -349,7 +394,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
     private void showPageLoadDialog() {
         if (mPageLoadDialog == null) {
             AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
-            View view = getLayoutInflater().inflate(R.layout.waiter_dialog, null, false);
+            @SuppressLint("InflateParams") View view = getLayoutInflater().inflate(R.layout.waiter_dialog, null, false);
             mPageLoadDialog = dialogBuilder
                     .setCancelable(false)
                     .setView(view)
@@ -402,7 +447,6 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
     @SuppressLint("RestrictedApi")
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.browser_menu, menu);
-
         // добавлю обработку поиска
         MenuItem searchMenuItem = menu.findItem(R.id.action_search);
         mSearchView = (SearchView) searchMenuItem.getActionView();
@@ -469,6 +513,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                 mSearchView.onActionViewCollapsed();
                 showPageLoadDialog();
                 changeTitle("Поиск: " + query);
+                mRecycler.scrollToPosition(0);
                 // добавлю запрос в очередь
                 try {
                     String requestValue = "https://rutracker.org/forum/tracker.php?&nm=" + URLEncoder.encode(query.trim(), "windows-1251");
@@ -491,5 +536,96 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
     public void downloadTorrent(String torrentUrl) {
         Toast.makeText(this, getString(R.string.torrent_loading_message), Toast.LENGTH_SHORT).show();
         mMyViewModel.downloadTorrent(torrentUrl);
+    }
+
+    public void showLongPressIntro() {
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // попробую найти первый элемент в Recycler.
+                final View firstValue = mRecycler.getChildAt(0);
+                if (firstValue != null) {
+                    new MaterialIntroView.Builder(BrowserActivity.this)
+                            .enableDotAnimation(true)
+                            .enableIcon(false)
+                            .setFocusGravity(FocusGravity.LEFT)
+                            .setFocusType(Focus.MINIMUM)
+                            .setIdempotent(true)
+                            .enableFadeAnimation(true)
+                            .performClick(false)
+                            .setListener(new MaterialIntroListener() {
+                                @Override
+                                public void onUserClicked(String materialIntroViewId) {
+                                    firstValue.showContextMenu();
+                                }
+                            })
+                            .setInfoText("Долгое нажатие открывает меню")
+                            .setTarget(firstValue)
+                            .setShape(ShapeType.RECTANGLE)
+                            .setUsageId("long click use intro") //THIS SHOULD BE UNIQUE ID
+                            .show();
+                    Preferences.getInstance().setBrowserContextIntroShowed();
+                }
+            }
+        }, 2000);
+    }
+
+    public void showRecyclerIntro() {
+
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // попробую найти первый элемент в Recycler.
+                View firstValue = mRecycler.getChildAt(0);
+                if (firstValue != null) {
+                    new MaterialIntroView.Builder(BrowserActivity.this)
+                            .enableDotAnimation(true)
+                            .enableIcon(false)
+                            .setFocusGravity(FocusGravity.LEFT)
+                            .setFocusType(Focus.MINIMUM)
+                            .setIdempotent(false)
+                            .enableFadeAnimation(true)
+                            .performClick(true)
+                            .setInfoText("Нажмите на меня, чтобы выполнить запрос")
+                            .setTarget(firstValue)
+                            .setShape(ShapeType.RECTANGLE)
+                            .setUsageId("recycler use intro") //THIS SHOULD BE UNIQUE ID
+                            .show();
+                    Preferences.getInstance().setRecyclerIntroShowed();
+                }
+            }
+        }, 2000);
+    }
+
+
+    private void showHomeIntro() {
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // попробую найти первый элемент в Recycler.
+                mHomeView = findViewById(R.id.goHome);
+                if (mHomeView != null) {
+                    new MaterialIntroView.Builder(BrowserActivity.this)
+                            .enableDotAnimation(false)
+                            .enableIcon(false)
+                            .setFocusGravity(FocusGravity.CENTER)
+                            .setFocusType(Focus.MINIMUM)
+                            .enableFadeAnimation(true)
+                            .performClick(true)
+                            .setInfoText("Нажмите на меня, чтобы вернуться на главную страницу")
+                            .setTarget(mHomeView)
+                            .setShape(ShapeType.CIRCLE)
+                            .setUsageId("home use intro")
+                            .show();
+                    Preferences.getInstance().setHomeIntroShowed();
+                }
+                else{
+                    Log.d("surprise", "BrowserActivity run: Home not found");
+                }
+            }
+        }, 2000);
     }
 }

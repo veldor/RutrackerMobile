@@ -17,6 +17,10 @@ public class Preferences {
     private static final File DEFAULT_DOWNLOAD_FOLDER_LOCATION = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
     private static final String PREFERENCE_DOWNLOAD_LOCATION = "download_location";
     public static final String TOR_FILES_LOCATION = "torfiles";
+    private static final String CONTEXT_INTRO_SHOWED = "context intro showed";
+    private static final String SEARCH_INTRO_SHOWED = "search intro showed";
+    private static final String RECYCLER_INTRO_SHOWED = "recycler intro showed";
+    private static final String HOME_INTRO_SHOWED = "home intro showed";
     private static Preferences instance;
     public final SharedPreferences mSharedPreferences;
 
@@ -81,5 +85,37 @@ public class Preferences {
 
     public boolean isTorrentOpen() {
         return mSharedPreferences.getBoolean(SettingsActivity.KEY_OPEN_TORRENT_IMMEDIATELY, false);
+    }
+
+    public boolean isBrowserContextIntroShowed() {
+        return mSharedPreferences.getBoolean(CONTEXT_INTRO_SHOWED, false);
+    }
+
+    public void setBrowserContextIntroShowed() {
+        mSharedPreferences.edit().putBoolean(CONTEXT_INTRO_SHOWED, true).apply();
+    }
+
+    public boolean isSearchIntroShowed() {
+        return mSharedPreferences.getBoolean(SEARCH_INTRO_SHOWED, false);
+    }
+
+    public void setSearchIntroShowed() {
+        mSharedPreferences.edit().putBoolean(SEARCH_INTRO_SHOWED, true).apply();
+    }
+
+    public boolean isRecyclerIntroViewed() {
+        return mSharedPreferences.getBoolean(RECYCLER_INTRO_SHOWED, false);
+    }
+
+    public void setRecyclerIntroShowed() {
+        mSharedPreferences.edit().putBoolean(RECYCLER_INTRO_SHOWED, true).apply();
+    }
+
+    public boolean isHomeIntroViewed() {
+        return mSharedPreferences.getBoolean(HOME_INTRO_SHOWED, false);
+    }
+
+    public void setHomeIntroShowed() {
+        mSharedPreferences.edit().putBoolean(HOME_INTRO_SHOWED, true).apply();
     }
 }

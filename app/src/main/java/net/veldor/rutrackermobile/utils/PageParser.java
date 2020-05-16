@@ -30,31 +30,35 @@ public class PageParser {
 
         // обработаю страницы
         Elements paginator = dom.select("div#pagination");
-        if(paginator.size() == 1){
+        if (paginator.size() == 1) {
             Elements pages = paginator.select("a.pg");
-            if(pages.size() > 2){
+            if (pages.size() > 2) {
                 // возьму предпоследний элемент, он должен быть максимальной страницей
                 Element maxPage = pages.get(pages.size() - 2);
-                if(maxPage != null){
+                if (maxPage != null) {
                     BrowserActivity.sPagesCount = Integer.parseInt(maxPage.text());
                 }
 
             }
-        }
-        else {
+        } else {
             paginator = dom.select("div.bottom_info a.pg");
-            if(paginator.size() > 2){
+            if (paginator.size() > 2) {
                 // для каждой страницы, если это не начальная и не конечная, добавлю ссылку
                 BrowserActivity.sSearchResultsArray = new ArrayList<>();
                 for (Element e :
                         paginator) {
-                    if (!e.text().equals("Пред.") && !e.text().equals("След.")){
+                    if (!e.text().equals("Пред.") && !e.text().equals("След.")) {
                         BrowserActivity.sSearchResultsArray.add(e.attr("href"));
                     }
                 }
                 Log.d("surprise", "PageParser parsePage: founded search result pages: " + BrowserActivity.sSearchResultsArray.size());
+            } else {
+                Log.d("surprise", "PageParser parsePage: found one page");
+                BrowserActivity.sPagesCount = -1;
+                BrowserActivity.sSearchResultsArray = null;
             }
         }
+
 
         //todo позже объединю разделы, пока что будет дублирование
         String loadedPageUrl = App.getInstance().mHistory.peek();
@@ -205,6 +209,7 @@ public class PageParser {
         // для начала, попробую найти результаты поиска
         Elements searchResults = dom.select("div#search-results table tr.hl-tr");
         if (searchResults.size() > 0) {
+            Log.d("surprise", "PageParser parsePage: found search results!");
             for (Element row :
                     searchResults) {
                 // заполню название
@@ -237,7 +242,7 @@ public class PageParser {
                         // найду ссылку на поиск в данной категории
                         Elements categoryLink = category.select("a.gen");
                         if (categoryLink.size() == 1) {
-                            item.setCategoryLink(categoryLink.attr("href"));
+                            item.setCategoryLink(categoryLink.attr("href") + "&nm=" + BrowserActivity.sLastSearchString);
                         }
                     }
                     result.add(item);

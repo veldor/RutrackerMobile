@@ -1,6 +1,7 @@
 package net.veldor.rutrackermobile.adapters;
 
 import android.graphics.Color;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -72,7 +73,7 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
             if (type != null) {
                 String elementType = mItem.getType();
                 type.setText(mItem.getType());
-                switch (elementType){
+                switch (elementType) {
                     case "Категория":
                         mView.setBackgroundColor(mActivity.getResources().getColor(R.color.categoryColor));
                         break;
@@ -97,10 +98,9 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
                     public void onClick(View v) {
                         // перейду по ссылке
                         if (!(mItem.getUrl() == null)) {
-                            if(mItem.isPageLink()){
+                            if (mItem.isPageLink()) {
                                 mActivity.viewTopic(App.RUTRACKER_BASE + mItem.getUrl());
-                            }
-                            else{
+                            } else {
                                 mActivity.loadPage(App.RUTRACKER_BASE + mItem.getUrl(), true);
                             }
 
@@ -111,59 +111,61 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
 
             // если найдена ссылка на торрент- покажу поле для скачивания торрента, если нет- скрою
             ConstraintLayout torrentDlView = mView.findViewById(R.id.torrentDownloadContainer);
-            if(torrentDlView != null){
-                if(mItem.getTorrentUrl() != null){
+            if (torrentDlView != null) {
+                if (mItem.getTorrentUrl() != null) {
                     torrentDlView.setVisibility(View.VISIBLE);
                     torrentDlView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if(Preferences.getInstance().isUserLogged()){
+                            if (Preferences.getInstance().isUserLogged()) {
                                 mActivity.downloadTorrent(mItem.getTorrentUrl());
-                            }
-                            else{
-                                Toast.makeText(mActivity, "Чтобы скачивать торрент-файлы- войдите в учётную запись!",Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(mActivity, "Чтобы скачивать торрент-файлы- войдите в учётную запись!", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
                     // заполню размер раздачи
                     TextView distributionSizeView = mView.findViewById(R.id.distributionSize);
-                    if(distributionSizeView != null){
+                    if (distributionSizeView != null) {
                         distributionSizeView.setText(mItem.getTorrentSize());
                     }
                     TextView leechesView = mView.findViewById(R.id.leechesCount);
-                    if(leechesView != null){
+                    if (leechesView != null) {
                         leechesView.setText(mItem.getLeeches());
                     }
                     TextView seedsView = mView.findViewById(R.id.seedsCount);
-                    if(seedsView != null){
+                    if (seedsView != null) {
                         seedsView.setText(mItem.getSeeds());
                     }
                     TextView category = mView.findViewById(R.id.distributionCategory);
-                    if(category != null){
-                        if(mItem.getCategory() != null){
+                    if (category != null) {
+                        if (mItem.getCategory() != null) {
                             category.setText(String.format(Locale.ENGLISH, "%s / ", mItem.getCategory()));
-                            if(mItem.getCategoryLink() != null){
+                            if (mItem.getCategoryLink() != null) {
+                                if(!Preferences.getInstance().isBrowserContextIntroShowed() && Preferences.getInstance().isRecyclerIntroViewed()){
+                                    mActivity.showLongPressIntro();
+                                }
                                 mView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
                                     @Override
                                     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
                                         MenuItem searchThisCategory = menu.add("Поиск в " + mItem.getCategory());
+                                        searchThisCategory.setTitleCondensed(mItem.getCategory());
                                         searchThisCategory.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                                             @Override
                                             public boolean onMenuItemClick(MenuItem menuItem) {
-                                               mActivity.loadPage(App.RUTRACKER_BASE + mItem.getCategoryLink(), true);
+                                                Log.d("surprise", "ViewHolder onMenuItemClick: category link is " + mItem.getCategoryLink());
+                                                mActivity.loadPage(App.RUTRACKER_BASE + mItem.getCategoryLink(), true);
                                                 return false;
                                             }
                                         });
                                     }
                                 });
                             }
-                        }
-                        else{
+                        } else {
                             category.setText("");
                         }
                     }
-                }
-                else{
+                } else {
                     torrentDlView.setVisibility(View.GONE);
                 }
             }

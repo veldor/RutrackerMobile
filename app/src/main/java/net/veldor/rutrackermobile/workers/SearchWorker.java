@@ -1,6 +1,7 @@
 package net.veldor.rutrackermobile.workers;
 
 import android.content.Context;
+import android.os.Environment;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -12,6 +13,8 @@ import net.veldor.rutrackermobile.App;
 import net.veldor.rutrackermobile.http.TorWebClient;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -51,6 +54,13 @@ public class SearchWorker extends Worker {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+            // сохраню файл
+            try {
+                FileWriter out = new FileWriter(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "page.html"));
+                out.write(sb.toString());
+                out.close();
+            } catch (IOException e) {
             }
             App.getInstance().mLiveRequest.postValue(sb.toString());
             return Result.success();

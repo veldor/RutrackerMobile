@@ -66,7 +66,6 @@ public class BrowserViewModel extends ViewModel {
     }
 
     public void makeSearch(String query) {
-            Log.d("surprise", "BrowserViewModel makeSearch: search " + query);
             // запущу рабочего, который выполнит поиск
             // передам запрос, который нужно загрузить
             Data inputData = new Data.Builder()

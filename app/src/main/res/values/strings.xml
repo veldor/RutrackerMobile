@@ -24,14 +24,14 @@
     <string name="response_received_message">Получен ответ с сервера</string>
     <string name="login_label">Логин</string>
     <string name="category_item">Категория</string>
-    <string name="load_data_message">Загружаю данные, ожидайте...</string>
+    <string name="load_data_message">Загружаю данные, ожидайте…</string>
     <string name="wait_for_page_load_message">Подождите окончания загрузки страницы</string>
     <string name="dl_torrent_label">Скачать torrent</string>
     <string name="dl_magnet_label">Получить Magnet</string>
     <string name="show_file_list_label">Показать список файлов</string>
     <string name="poster_pic_label">poster_pic</string>
-    <string name="download_torrent_description">downloadTorrentDesctiption</string>
-    <string name="open_preferences_message">Настройки поиска</string>
+    <string name="download_torrent_description">downloadTorrentDescription</string>
+    <string name="open_preferences_message">Настройки</string>
     <string name="hide_no_seed_message">Скрывать раздачи без сидов</string>
     <string name="sort_by_message">Сортировка результатов</string>
     <string name="from_low_to_high_message">От меньшего к большему</string>
