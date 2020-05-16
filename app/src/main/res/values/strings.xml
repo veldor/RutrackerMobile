@@ -38,4 +38,9 @@
     <string name="download_folder_pref_label">Папка сохранения</string>
     <string name="timer_channel_description">Уведомления о загруженных торрентах</string>
     <string name="torrent_loading_message">Торрент загружается</string>
+    <string name="go_home_title">Главная страница</string>
+    <string name="prev_page_label">Предыдущая</string>
+    <string name="next_page_label">Следующая</string>
+    <string name="next_desc">next</string>
+    <string name="share_page_title">Отправить</string>
 </resources>

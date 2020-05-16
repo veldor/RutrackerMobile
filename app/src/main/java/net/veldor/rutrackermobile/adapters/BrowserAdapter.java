@@ -1,11 +1,13 @@
 package net.veldor.rutrackermobile.adapters;
 
+import android.graphics.Color;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -15,6 +17,7 @@ import net.veldor.rutrackermobile.App;
 import net.veldor.rutrackermobile.R;
 import net.veldor.rutrackermobile.selections.ViewListItem;
 import net.veldor.rutrackermobile.ui.BrowserActivity;
+import net.veldor.rutrackermobile.utils.Preferences;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -67,7 +70,21 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
             // обработаю элементы
             TextView type = mView.findViewById(R.id.elementType);
             if (type != null) {
+                String elementType = mItem.getType();
                 type.setText(mItem.getType());
+                switch (elementType){
+                    case "Категория":
+                        mView.setBackgroundColor(mActivity.getResources().getColor(R.color.categoryColor));
+                        break;
+                    case "Раздел":
+                        mView.setBackgroundColor(mActivity.getResources().getColor(R.color.partColor));
+                        break;
+                    case "Форум":
+                        mView.setBackgroundColor(mActivity.getResources().getColor(R.color.forumColor));
+                        break;
+                    default:
+                        mView.setBackgroundColor(Color.WHITE);
+                }
             }
             TextView name = mView.findViewById(R.id.elementName);
             if (type != null) {
@@ -84,7 +101,7 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
                                 mActivity.viewTopic(App.RUTRACKER_BASE + mItem.getUrl());
                             }
                             else{
-                                mActivity.loadPage(App.RUTRACKER_BASE + mItem.getUrl());
+                                mActivity.loadPage(App.RUTRACKER_BASE + mItem.getUrl(), true);
                             }
 
                         }
@@ -100,7 +117,12 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
                     torrentDlView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            mActivity.downloadTorrent(mItem.getTorrentUrl());
+                            if(Preferences.getInstance().isUserLogged()){
+                                mActivity.downloadTorrent(mItem.getTorrentUrl());
+                            }
+                            else{
+                                Toast.makeText(mActivity, "Чтобы скачивать торрент-файлы- войдите в учётную запись!",Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
                     // заполню размер раздачи
@@ -128,7 +150,7 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
                                         searchThisCategory.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                                             @Override
                                             public boolean onMenuItemClick(MenuItem menuItem) {
-                                               mActivity.loadPage(App.RUTRACKER_BASE + mItem.getCategoryLink());
+                                               mActivity.loadPage(App.RUTRACKER_BASE + mItem.getCategoryLink(), true);
                                                 return false;
                                             }
                                         });

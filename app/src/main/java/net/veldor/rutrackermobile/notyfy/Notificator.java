@@ -79,7 +79,7 @@ public class Notificator {
                 .setContentTitle("Торрент загружен")
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(torrent.getName()))
                 .setAutoCancel(true)
-                .addAction(R.drawable.ic_share_white_24dp, "Отправить", sharePendingIntent)
+                .addAction(R.drawable.ic_share_black_24dp, "Отправить", sharePendingIntent)
                 .addAction(R.drawable.ic_open_white_24dp, "Открыть", openPendingIntent);
         Notification notification = notificationBuilder.build();
         mNotificationManager.notify(mLastNotificationId, notification);

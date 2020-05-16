@@ -28,7 +28,6 @@ public class SearchWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        Log.d("surprise", "SearchWorker doWork: start search");
         Data data = getInputData();
         String searchString = data.getString(SEARCH_STRING);
         TorWebClient webClient = new TorWebClient();

@@ -6,4 +6,8 @@
     <color name="size">#03A9F4</color>
     <color name="leeches">#F44336</color>
     <color name="seeds">#8BC34A</color>
+    <color name="categoryColor">#4DD5F1F4</color>
+    <color name="forumColor">#61E5F8CF</color>
+    <color name="partColor">#44FEECFF</color>
+    <color name="colorDisabled">#D6D6D6</color>
 </resources>

@@ -14,6 +14,8 @@ import com.msopentech.thali.android.toronionproxy.AndroidOnionProxyManager;
 import net.veldor.rutrackermobile.utils.Preferences;
 import net.veldor.rutrackermobile.workers.StartTorWorker;
 
+import java.util.Stack;
+
 import static net.veldor.rutrackermobile.workers.StartTorWorker.START_TOR;
 
 public class App extends Application {
@@ -29,6 +31,10 @@ public class App extends Application {
     public final MutableLiveData<String> mLiveRequest = new MutableLiveData<>();
     public final MutableLiveData<String> mLiveTopicRequest = new MutableLiveData<>();
     public final MutableLiveData<String> mPageTitle = new MutableLiveData<>();
+
+    // история запросов
+    public final Stack<String> mHistory = new Stack<>();
+    public String externalUrl;
 
     public static App getInstance() {
         return instance;

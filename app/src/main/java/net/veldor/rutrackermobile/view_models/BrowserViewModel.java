@@ -21,7 +21,6 @@ import net.veldor.rutrackermobile.workers.RequestWorker;
 import net.veldor.rutrackermobile.workers.SearchWorker;
 
 import java.util.ArrayList;
-import java.util.Stack;
 
 import static net.veldor.rutrackermobile.workers.DownloadTorrentWorker.TORRENT_LINK;
 import static net.veldor.rutrackermobile.workers.RequestWorker.REQUESTED_URL;
@@ -31,7 +30,6 @@ import static net.veldor.rutrackermobile.workers.SearchWorker.SEARCH_STRING;
 
 public class BrowserViewModel extends ViewModel {
 
-    private Stack<String> mHistory;
 
     public void loadPage(String url) {
         // передам URL, который нужно загрузить
@@ -46,16 +44,13 @@ public class BrowserViewModel extends ViewModel {
     }
 
     public void addToHistory(String url) {
-        if (mHistory == null) {
-            mHistory = new Stack<>();
-        }
-        mHistory.push(url);
+        App.getInstance().mHistory.push(url);
     }
 
     public String getFromHistory(String mLastLoadedPage) {
         String last;
-        while (mHistory != null && mHistory.size() > 0) {
-            last = mHistory.pop();
+        while (App.getInstance().mHistory.size() > 0) {
+            last = App.getInstance().mHistory.pop();
             if (!last.equals(mLastLoadedPage)) {
                 return last;
             }
@@ -71,22 +66,22 @@ public class BrowserViewModel extends ViewModel {
     }
 
     public void makeSearch(String query) {
-        Log.d("surprise", "BrowserViewModel makeSearch: search " + query);
-        // запущу рабочего, который выполнит поиск
-        // передам запрос, который нужно загрузить
-        Data inputData = new Data.Builder()
-                .putString(SEARCH_STRING, query)
-                .build();
-        Constraints constraints = new Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build();
-        OneTimeWorkRequest loginWork = new OneTimeWorkRequest.Builder(SearchWorker.class)
-                .addTag(SEARCH_ACTION)
-                .setInputData(inputData)
-                .setConstraints(constraints)
-                .build();
-        WorkManager.getInstance(App.getInstance())
-                .enqueueUniqueWork(SEARCH_ACTION, ExistingWorkPolicy.REPLACE, loginWork);
+            Log.d("surprise", "BrowserViewModel makeSearch: search " + query);
+            // запущу рабочего, который выполнит поиск
+            // передам запрос, который нужно загрузить
+            Data inputData = new Data.Builder()
+                    .putString(SEARCH_STRING, query)
+                    .build();
+            Constraints constraints = new Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build();
+            OneTimeWorkRequest loginWork = new OneTimeWorkRequest.Builder(SearchWorker.class)
+                    .addTag(SEARCH_ACTION)
+                    .setInputData(inputData)
+                    .setConstraints(constraints)
+                    .build();
+            WorkManager.getInstance(App.getInstance())
+                    .enqueueUniqueWork(SEARCH_ACTION, ExistingWorkPolicy.REPLACE, loginWork);
     }
 
     public void openSearchSettingsWindow() {

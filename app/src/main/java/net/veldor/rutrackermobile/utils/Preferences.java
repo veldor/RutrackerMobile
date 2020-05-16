@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import androidx.documentfile.provider.DocumentFile;
 
@@ -64,10 +65,12 @@ public class Preferences {
             DocumentFile dl = DocumentFile.fromTreeUri(App.getInstance(), Uri.parse(download_location));
             if(dl != null){
                 if(dl.isDirectory()){
+                    Log.d("surprise", "Preferences getDownloadFolder: have custom location");
                     return dl;
                 }
             }
         }
+        Log.d("surprise", "Preferences getDownloadFolder: return default location");
         // верну путь к папке загрузок
         return DocumentFile.fromFile(DEFAULT_DOWNLOAD_FOLDER_LOCATION);
     }

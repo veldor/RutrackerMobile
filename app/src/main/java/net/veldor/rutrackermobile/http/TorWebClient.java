@@ -10,6 +10,7 @@ import com.msopentech.thali.android.toronionproxy.AndroidOnionProxyManager;
 
 import net.veldor.rutrackermobile.App;
 import net.veldor.rutrackermobile.R;
+import net.veldor.rutrackermobile.ui.BrowserActivity;
 import net.veldor.rutrackermobile.utils.Preferences;
 import net.veldor.rutrackermobile.workers.StartTorWorker;
 
@@ -238,7 +239,10 @@ public class TorWebClient {
 
    public InputStream search(String searchString) {
         try {
-            String url = "https://rutracker.org/forum/tracker.php?&nm=" + URLEncoder.encode(searchString, "windows-1251");
+            // сохраню строку для добавления в поиск следующих страниц
+            BrowserActivity.sLastSearchString = URLEncoder.encode(searchString, "windows-1251");
+            String url = "https://rutracker.org/forum/tracker.php?&nm=" + BrowserActivity.sLastSearchString;
+            Log.d("surprise", "TorWebClient search: " + url);
 
             // post =================================
             List<NameValuePair> paramsArray = new ArrayList<>();

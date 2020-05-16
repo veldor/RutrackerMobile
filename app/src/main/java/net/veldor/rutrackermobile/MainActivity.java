@@ -3,8 +3,12 @@ package net.veldor.rutrackermobile;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -39,6 +43,12 @@ public class MainActivity extends AppCompatActivity {
             showPermissionDialog();
         } else {
             handleStart();
+        }
+
+        // проверю, не запущено ли приложение с помощью интента, если да- перейду на присланную страницу
+        if(getIntent().getData()!=null){
+            Uri data = getIntent().getData();
+            App.getInstance().externalUrl = data.toString();
         }
     }
 
@@ -123,4 +133,11 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .show();
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        setupObservers();
+    }
 }
+

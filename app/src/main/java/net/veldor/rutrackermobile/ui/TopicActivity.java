@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.text.Html;
 import android.text.Spanned;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -48,6 +50,7 @@ public static final String TOPIC_URL = "topic_url";
     private Button mMagnetButton;
     private String mMagnet;
     private TextView mTopicBody;
+    private String mTopicUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,7 +97,8 @@ public static final String TOPIC_URL = "topic_url";
 
     private void requestData() {
         // запрошу страницу
-        mViewModel.requestPage(getIntent().getStringExtra(TOPIC_URL));
+        mTopicUrl = getIntent().getStringExtra(TOPIC_URL);
+        mViewModel.requestPage(mTopicUrl);
     }
 
     private void changeTitle(String s) {
@@ -121,7 +125,12 @@ public static final String TOPIC_URL = "topic_url";
             public void onChanged(String s) {
                 if(s != null){
                     mTorrentNameView.setText(s);
-                    changeTitle(s.substring(0, s.indexOf("(")));
+                    if(s.contains("(")){
+                        changeTitle(s.substring(0, s.indexOf("(")));
+                    }
+                    else{
+                        changeTitle(s);
+                    }
                 }
                 else{
                     mTorrentNameView.setText("");
@@ -229,5 +238,20 @@ public static final String TOPIC_URL = "topic_url";
 
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.topic_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId() == R.id.sharePage){
+            // отправлю ссылку на страницу
+            mViewModel.handleMagnet(mTopicUrl);
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

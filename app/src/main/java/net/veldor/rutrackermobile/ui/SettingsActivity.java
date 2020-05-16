@@ -1,12 +1,15 @@
 package net.veldor.rutrackermobile.ui;
 
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.DropDownPreference;
@@ -15,6 +18,7 @@ import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.PreferenceScreen;
 import androidx.preference.SwitchPreference;
 
+import net.veldor.rutrackermobile.App;
 import net.veldor.rutrackermobile.R;
 import net.veldor.rutrackermobile.utils.Preferences;
 
@@ -117,11 +121,11 @@ public class SettingsActivity extends FragmentActivity {
 
                 // выбор папки для загрузки торрент-файлов
                 mFolderChooser = new Preference(activity);
-                mFolderChooser.setSummary(Preferences.getInstance().getDownloadFolder().toString());
+
+                mFolderChooser.setSummary(Preferences.getInstance().getDownloadFolder().getUri().toString());
                 mFolderChooser.setKey(SettingsActivity.KEY_CHANGE_DOWNLOAD_FOLDER);
                 mFolderChooser.setTitle(getString(R.string.download_folder_pref_label));
                 rootScreen.addPreference(mFolderChooser);
-
                 setHasOptionsMenu(true);
             }
         }
@@ -142,7 +146,14 @@ public class SettingsActivity extends FragmentActivity {
 
         private void changeDownloadsFolder() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), DOWNLOAD_FOLDER_SELECT_REQUEST_CODE);
+                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                intent.addFlags(
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        |Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        |Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                        |Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
+                );
+                startActivityForResult(intent, DOWNLOAD_FOLDER_SELECT_REQUEST_CODE);
             }
         /*else {
             Intent intent = new Intent(this, FolderPicker.class);
@@ -157,8 +168,16 @@ public class SettingsActivity extends FragmentActivity {
                     if (data != null) {
                         Uri treeUri = data.getData();
                         if (treeUri != null) {
-                            mFolderChooser.setSummary(treeUri.toString());
-                            Preferences.getInstance().saveDownloadLocation(treeUri);
+                            // проверю наличие файла
+                            DocumentFile dl = DocumentFile.fromTreeUri(App.getInstance(), treeUri);
+                            if(dl != null && dl.isDirectory()){
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                                    App.getInstance().getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                    App.getInstance().getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                                }
+                                mFolderChooser.setSummary(treeUri.toString());
+                                Preferences.getInstance().saveDownloadLocation(treeUri);
+                            }
                         }
 
 

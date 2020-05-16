@@ -8,6 +8,12 @@
         yourapp:actionViewClass="androidx.appcompat.widget.SearchView"
         yourapp:showAsAction="ifRoom"/>
     <item
+        android:id="@+id/goHome"
+        android:title="@string/go_home_title"
+        android:icon="@drawable/ic_home_white_24dp"
+        yourapp:showAsAction="ifRoom"
+        />
+    <item
         android:id="@+id/searchSettings"
         android:title="@string/open_preferences_message"
         yourapp:showAsAction="never"/>

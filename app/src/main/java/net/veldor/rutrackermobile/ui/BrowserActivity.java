@@ -12,12 +12,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -42,27 +46,117 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class BrowserActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+    public static int sPagesCount;
+    public static ArrayList<String> sSearchResultsArray;
+    public static String sLastSearchString;
     private BrowserViewModel mMyViewModel;
     private BrowserAdapter mAdapter;
     private AlertDialog mPageLoadDialog;
     private String mLastLoadedPage;
+    private static int sCurrentPage = 1;
     private ArrayList<String> autocompleteStrings;
     private ArrayAdapter<String> mSearchAdapter;
     private SearchView mSearchView;
     private static boolean sFirstLoad = true;
+    private LinearLayout mPager;
+    private ConstraintLayout mPagerRoot;
+    private ImageButton mBackButton, mForwardButton;
+    private RecyclerView mRecycler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        sPagesCount = -1;
         setContentView(R.layout.activity_browser);
-        RecyclerView recycler = findViewById(R.id.contentRecycler);
+        mPager = findViewById(R.id.pagesScrollView);
+        mPagerRoot = findViewById(R.id.pagerView);
+        mBackButton = findViewById(R.id.prevPage);
+        mBackButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int nextPageNum = sCurrentPage - 1;
+                if (mLastLoadedPage != null) {
+                    if (mLastLoadedPage.startsWith("https://rutracker.org/forum/viewforum.php?f")) {
+                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false);
+                        sCurrentPage = nextPageNum;
+                        return;
+                    }
+                } else {
+                    mLastLoadedPage = App.getInstance().mHistory.peek();
+                    if (mLastLoadedPage != null) {
+                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false);
+                        sCurrentPage = nextPageNum;
+                        return;
+                    }
+                }
+                if(sSearchResultsArray != null && sSearchResultsArray.size() > 0){
+                    int counter = 0;
+                    while (counter <= sSearchResultsArray.size()){
+                        counter++;
+                        if(sCurrentPage == counter){
+                            loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(counter - 1) + "&nm=" + sLastSearchString, false);
+                            if(counter == 1){
+                                sCurrentPage = 1;
+                            }
+                            else{
+                                sCurrentPage = counter - 1;
+                            }
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+        mForwardButton = findViewById(R.id.nextPage);
+        mForwardButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int nextPageNum = sCurrentPage + 1;
+                if (mLastLoadedPage != null) {
+                    if (mLastLoadedPage.startsWith("https://rutracker.org/forum/viewforum.php?f")) {
+                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false);
+                        sCurrentPage = nextPageNum;
+                        return;
+                    }
+                } else {
+                    mLastLoadedPage = App.getInstance().mHistory.peek();
+                    if (mLastLoadedPage != null) {
+                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false);
+                        sCurrentPage = nextPageNum;
+                    }
+                    return;
+                }
+                if(sSearchResultsArray != null && sSearchResultsArray.size() > 0){
+                    int counter = 0;
+                    while (counter <= sSearchResultsArray.size()){
+                        counter++;
+                        if(sCurrentPage == counter){
+                            loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(counter + 1) + "&nm=" + sLastSearchString, false);
+                            sCurrentPage = counter + 1;
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+        mRecycler = findViewById(R.id.contentRecycler);
         mAdapter = new BrowserAdapter(this);
-        recycler.setAdapter(mAdapter);
-        recycler.setLayoutManager(new LinearLayoutManager(this));
+        mRecycler.setAdapter(mAdapter);
+        mRecycler.setLayoutManager(new LinearLayoutManager(this));
         mMyViewModel = new ViewModelProvider(this).get(BrowserViewModel.class);
         // получу данные стартовой страницы
-        if(sFirstLoad){
-            loadPage(App.RUTRACKER_MAIN_PAGE);
+
+        if(App.getInstance().externalUrl != null){
+            if(App.getInstance().externalUrl.startsWith("https://rutracker.org/forum/viewtopic.php?t=")){
+                viewTopic(App.getInstance().externalUrl);
+            }
+            else{
+                loadPage(App.getInstance().externalUrl, true);
+            }
+            App.getInstance().externalUrl = null;
+        }
+        else if (sFirstLoad) {
+            loadPage(App.RUTRACKER_MAIN_PAGE, true);
             sFirstLoad = false;
         }
         // проверю, залогинен ли пользователь, если нет- предложу войти
@@ -88,6 +182,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                     // обработаю данные и получу список элементов для отображения
                     ArrayList<ViewListItem> data = (new PageParser()).parsePage(s);
                     mAdapter.setItems(data);
+                    drawPages();
                     hidePageLoadDialog();
                 }
             }
@@ -103,6 +198,110 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                 }
             }
         });
+    }
+
+    private void drawPages() {
+        mPager.removeAllViews();
+        // проверю, что количество страниц больше нуля
+        if (sPagesCount > 1) {
+            mPagerRoot.setVisibility(View.VISIBLE);
+            Button button;
+            int pageNum = 1;
+            while (sPagesCount > 0) {
+                --sPagesCount;
+                // если кнопка совпадает с текущим номером страницы- добавлю её
+                if (pageNum == sCurrentPage) {
+                    button = (Button) getLayoutInflater().inflate(R.layout.current_pager_button, mPager, false);
+                    button.setText(String.valueOf(pageNum));
+                    mPager.addView(button);
+                } else {
+                    // создам кнопку и добавлю её к списку
+                    button = (Button) getLayoutInflater().inflate(R.layout.pager_button, mPager, false);
+                    button.setText(String.valueOf(pageNum));
+                    button.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            int pageCount = Integer.parseInt(((Button) v).getText().toString());
+                            // перейду на нужную страницу
+                            if (mLastLoadedPage != null) {
+                                if (mLastLoadedPage.startsWith("https://rutracker.org/forum/viewforum.php?f")) {
+                                    loadPage(mLastLoadedPage + "&start=" + (pageCount * 50 - 50), false);
+                                    sCurrentPage = pageCount;
+                                }
+                            } else {
+                                mLastLoadedPage = App.getInstance().mHistory.peek();
+                                if (mLastLoadedPage != null) {
+                                    loadPage(mLastLoadedPage + "&start=" + (pageCount * 50 - 50), false);
+                                    sCurrentPage = pageCount;
+                                }
+                            }
+                        }
+                    });
+                    mPager.addView(button);
+                }
+                ++pageNum;
+            }
+
+            // теперь кнопки назад и вперёд.
+            if (sCurrentPage == 1) {
+                mBackButton.setEnabled(false);
+            } else {
+                mBackButton.setEnabled(true);
+            }
+
+            if (sCurrentPage == sPagesCount) {
+                mForwardButton.setEnabled(false);
+            } else {
+                mForwardButton.setEnabled(true);
+            }
+        }
+        else if(sSearchResultsArray != null && sSearchResultsArray.size() > 0){
+            mPagerRoot.setVisibility(View.VISIBLE);
+            Button button;
+            // добавлю данные в меню
+            int pageNumber = 0;
+            int countedPage = 0;
+            while (pageNumber <= sSearchResultsArray.size()){
+                ++pageNumber;
+                if(pageNumber == sCurrentPage){
+                    button = (Button) getLayoutInflater().inflate(R.layout.current_pager_button, mPager, false);
+                    button.setText(String.valueOf(sCurrentPage));
+                    mPager.addView(button);
+                }
+                else{
+                    // создам кнопку и добавлю её к списку
+                    button = (Button) getLayoutInflater().inflate(R.layout.pager_button, mPager, false);
+                    button.setText(String.valueOf(pageNumber));
+                    final int finalCountedPage = countedPage;
+                    final int finalPageNumber = pageNumber;
+                    button.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(finalCountedPage) + "&nm=" + sLastSearchString, false);
+                            sCurrentPage = finalPageNumber;
+                        }
+                    });
+                    mPager.addView(button);
+                    countedPage++;
+                }
+            }
+
+            // теперь кнопки назад и вперёд.
+            if (sCurrentPage == 1) {
+                mBackButton.setEnabled(false);
+            } else {
+                mBackButton.setEnabled(true);
+            }
+
+            if (sCurrentPage == sSearchResultsArray.size() + 1) {
+                mForwardButton.setEnabled(false);
+            } else {
+                mForwardButton.setEnabled(true);
+            }
+        }
+        else {
+            mPagerRoot.setVisibility(View.GONE);
+        }
     }
 
     private void changeTitle(String s) {
@@ -126,13 +325,25 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
         }
     }
 
-    public void loadPage(String url) {
-        mLastLoadedPage = url;
-        // Добавлю страницу в историю
-        mMyViewModel.addToHistory(url);
-        // закрою вид диалоговым окном загрузки
-        showPageLoadDialog();
-        mMyViewModel.loadPage(url);
+    public void loadPage(String url, boolean resetPager) {
+        sSearchResultsArray = null;
+        Log.d("surprise", "BrowserActivity loadPage: " + url);
+        mRecycler.scrollToPosition(0);
+        if (resetPager) {
+            sCurrentPage = 1;
+        }
+        // тут проверка- возможно, мы пытаемся открыть топик как ссылку. Если это так- открываю топик
+        if (url.startsWith("https://rutracker.org/forum/viewtopic.php")) {
+            // открою топик
+            viewTopic(url);
+        } else {
+            mLastLoadedPage = url;
+            // Добавлю страницу в историю
+            mMyViewModel.addToHistory(url);
+            // закрою вид диалоговым окном загрузки
+            showPageLoadDialog();
+            mMyViewModel.loadPage(url);
+        }
     }
 
     private void showPageLoadDialog() {
@@ -166,15 +377,14 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                 String link = mMyViewModel.getFromHistory(mLastLoadedPage);
                 if (link != null) {
                     showPageLoadDialog();
-                    if(link.startsWith("https://rutracker.org/forum/tracker.php?&nm=")){
+                    if (link.startsWith("https://rutracker.org/forum/tracker.php?&nm=")) {
                         // выполняю поиск по заданному параметру
                         try {
                             mMyViewModel.makeSearch(URLDecoder.decode(link.substring(44), "windows-1251"));
                         } catch (UnsupportedEncodingException e) {
                             e.printStackTrace();
                         }
-                    }
-                    else{
+                    } else {
                         mMyViewModel.loadPage(link);
                     }
                     return true;
@@ -230,35 +440,45 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                 // открою окно с настройками поиска
                 mMyViewModel.openSearchSettingsWindow();
                 return true;
+            case R.id.goHome:
+                // перейду на главную
+                loadPage(App.RUTRACKER_MAIN_PAGE, true);
+                return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public boolean onQueryTextSubmit(String query) {
-        if (!TextUtils.isEmpty(query.trim())) {
-            // занесу значение в список автозаполнения
-            if (XMLHandler.putSearchValue(query.trim())) {
-                // обновлю список поиска
-                autocompleteStrings = mMyViewModel.getSearchAutocomplete();
-                mSearchAdapter.clear();
-                mSearchAdapter.addAll(autocompleteStrings);
-                mSearchAdapter.notifyDataSetChanged();
-            }
-            // ищу введённое значение
-            mMyViewModel.makeSearch(query);
-            mSearchView.onActionViewCollapsed();
-            showPageLoadDialog();
-            changeTitle("Поиск: " + query);
-             // добавлю запрос в очередь
-            try {
-                String requestValue = "https://rutracker.org/forum/tracker.php?&nm=" + URLEncoder.encode(query.trim(), "windows-1251");
-                mLastLoadedPage = requestValue;
-                mMyViewModel.addToHistory(requestValue);
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+        sCurrentPage = 1;
+        // если не выполнен вход в учётную запись- уведомлю об этом, поиск невозможен
+        if (!Preferences.getInstance().isUserLogged()) {
+            Toast.makeText(App.getInstance(), "Для того, чтобы пользоваться поиском- нужно войти в учётную запись!", Toast.LENGTH_SHORT).show();
+        } else {
+            if (!TextUtils.isEmpty(query.trim())) {
+                // занесу значение в список автозаполнения
+                if (XMLHandler.putSearchValue(query.trim())) {
+                    // обновлю список поиска
+                    autocompleteStrings = mMyViewModel.getSearchAutocomplete();
+                    mSearchAdapter.clear();
+                    mSearchAdapter.addAll(autocompleteStrings);
+                    mSearchAdapter.notifyDataSetChanged();
+                }
+                // ищу введённое значение
+                mMyViewModel.makeSearch(query);
+                mSearchView.onActionViewCollapsed();
+                showPageLoadDialog();
+                changeTitle("Поиск: " + query);
+                // добавлю запрос в очередь
+                try {
+                    String requestValue = "https://rutracker.org/forum/tracker.php?&nm=" + URLEncoder.encode(query.trim(), "windows-1251");
+                    mLastLoadedPage = requestValue;
+                    mMyViewModel.addToHistory(requestValue);
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
 
+            }
         }
         return true;
     }

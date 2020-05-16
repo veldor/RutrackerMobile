@@ -1,6 +1,8 @@
 package net.veldor.rutrackermobile.workers;
 
 import android.content.Context;
+import android.os.Environment;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.work.Data;
@@ -11,9 +13,12 @@ import net.veldor.rutrackermobile.App;
 import net.veldor.rutrackermobile.http.TorWebClient;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 
 public class RequestWorker extends Worker {
@@ -30,6 +35,7 @@ public class RequestWorker extends Worker {
     public Result doWork() {
         Data data = getInputData();
         String url = data.getString(REQUESTED_URL);
+        Log.d("surprise", "RequestWorker doWork: request " + url);
         // запрошу страницу
         InputStream response = (new TorWebClient()).requestPage(url);
         if(response != null){
@@ -51,6 +57,13 @@ public class RequestWorker extends Worker {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
+            // сохраню файл
+            try {
+                FileWriter out = new FileWriter(new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "page.html"));
+                out.write(sb.toString());
+                out.close();
+            } catch (IOException e) {
             }
             App.getInstance().mLiveRequest.postValue(sb.toString());
         }
