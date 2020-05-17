@@ -114,7 +114,7 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
             if (torrentDlView != null) {
                 if (mItem.getTorrentUrl() != null) {
                     // покажу подсказку по скачиванию торрента
-                    if(!Preferences.getInstance().isTorrentDownloadIntroViewed() && Preferences.getInstance().isBrowserContextIntroShowed() && Preferences.getInstance().isRecyclerIntroViewed()){
+                    if (!Preferences.getInstance().isTorrentDownloadIntroViewed() && Preferences.getInstance().isBrowserContextIntroShowed() && Preferences.getInstance().isRecyclerIntroViewed()) {
                         mActivity.showDownloadTorrentIntro();
                     }
                     torrentDlView.setVisibility(View.VISIBLE);
@@ -146,18 +146,16 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
                         if (mItem.getCategory() != null) {
                             category.setText(String.format(Locale.ENGLISH, "%s / ", mItem.getCategory()));
                             if (mItem.getCategoryLink() != null) {
-                                if(!Preferences.getInstance().isBrowserContextIntroShowed() && Preferences.getInstance().isRecyclerIntroViewed()){
+                                if (!Preferences.getInstance().isBrowserContextIntroShowed() && Preferences.getInstance().isRecyclerIntroViewed()) {
                                     mActivity.showLongPressIntro();
                                 }
                                 mView.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
                                     @Override
                                     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
                                         MenuItem searchThisCategory = menu.add("Поиск в " + mItem.getCategory());
-                                        searchThisCategory.setTitleCondensed(mItem.getCategory());
                                         searchThisCategory.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
                                             @Override
                                             public boolean onMenuItemClick(MenuItem menuItem) {
-                                                Log.d("surprise", "ViewHolder onMenuItemClick: category link is " + mItem.getCategoryLink());
                                                 mActivity.loadPage(App.RUTRACKER_BASE + mItem.getCategoryLink(), true, true);
                                                 return false;
                                             }

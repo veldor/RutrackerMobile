@@ -573,7 +573,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                     Preferences.getInstance().setBrowserContextIntroShowed();
                 }
             }
-        }, 2000);
+        }, 1000);
     }
 
     public void showRecyclerIntro() {
@@ -601,7 +601,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                     Preferences.getInstance().setRecyclerIntroShowed();
                 }
             }
-        }, 2000);
+        }, 1000);
     }
 
 
@@ -631,7 +631,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                     Log.d("surprise", "BrowserActivity run: Home not found");
                 }
             }
-        }, 2000);
+        }, 1000);
     }
 
     public void showDownloadTorrentIntro() {

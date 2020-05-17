@@ -1,12 +1,10 @@
 package net.veldor.rutrackermobile.ui;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.documentfile.provider.DocumentFile;
@@ -65,7 +63,6 @@ public class SettingsActivity extends FragmentActivity {
         private DropDownPreference mSortBy;
         private SwitchPreference mLowToHigh;
         private Preference mFolderChooser;
-        private SwitchPreference mOpenTorrent;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -112,12 +109,12 @@ public class SettingsActivity extends FragmentActivity {
                 rootScreen.addPreference(mLowToHigh);
 
                 boolean openTorrentImmediately = Preferences.getInstance().mSharedPreferences.getBoolean(SettingsActivity.KEY_OPEN_TORRENT_IMMEDIATELY, false);
-                mOpenTorrent = new SwitchPreference(activity);
-                mOpenTorrent.setKey(SettingsActivity.KEY_OPEN_TORRENT_IMMEDIATELY);
-                mOpenTorrent.setTitle("Открывать торрент после скачивания");
-                mOpenTorrent.setSummary("После скачивания торрента, он будет незамедлительно открыт в поддерживаемом приложении");
-                mOpenTorrent.setChecked(openTorrentImmediately);
-                rootScreen.addPreference(mOpenTorrent);
+                SwitchPreference openTorrent = new SwitchPreference(activity);
+                openTorrent.setKey(SettingsActivity.KEY_OPEN_TORRENT_IMMEDIATELY);
+                openTorrent.setTitle("Открывать торрент после скачивания");
+                openTorrent.setSummary("После скачивания торрента, он будет незамедлительно открыт в поддерживаемом приложении");
+                openTorrent.setChecked(openTorrentImmediately);
+                rootScreen.addPreference(openTorrent);
 
                 // выбор папки для загрузки торрент-файлов
                 mFolderChooser = new Preference(activity);
