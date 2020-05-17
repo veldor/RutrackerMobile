@@ -314,7 +314,7 @@ public class TorWebClient {
                     }
                 }
 
-                DocumentFile path = Preferences.getInstance().getDownloadFolder();
+                DocumentFile path = Preferences.getInstance().getDownloadDir();
                 if(path != null){
 // проверю, не сохдан ли уже файл, если создан- удалю
                     DocumentFile existentFile = path.findFile(filename + ".torrent");

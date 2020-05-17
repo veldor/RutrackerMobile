@@ -59,7 +59,11 @@ public class Preferences {
         return mSharedPreferences.getBoolean(SettingsActivity.KEY_HIDE_NO_SEED, true);
     }
 
-    public DocumentFile getDownloadFolder() {
+    public void setDownloadDir(Uri uri) {
+        mSharedPreferences.edit().putString(PREFERENCE_DOWNLOAD_LOCATION, uri.toString()).apply();
+    }
+
+    public DocumentFile getDownloadDir() {
         // возвращу папку для закачек
         String download_location = mSharedPreferences.getString(PREFERENCE_DOWNLOAD_LOCATION, null);
         if(download_location != null){
@@ -73,10 +77,6 @@ public class Preferences {
         }
         // верну путь к папке загрузок
         return null;
-    }
-
-    public void saveDownloadLocation(Uri uri) {
-        mSharedPreferences.edit().putString(PREFERENCE_DOWNLOAD_LOCATION, uri.toString()).apply();
     }
 
     public boolean isTorrentOpen() {

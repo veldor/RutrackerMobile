@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
             showPermissionDialog();
         } else {
             // предложу выбрать папку для сохранения файлов
-            if(Preferences.getInstance().getDownloadFolder() == null){
+            if(Preferences.getInstance().getDownloadDir() == null){
                 showSelectDownloadFolderDialog();
             }
             else{
@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                 showPermissionDialog();
             } else {
                 // предложу выбрать папку для сохранения файлов
-                if(Preferences.getInstance().getDownloadFolder() == null){
+                if(Preferences.getInstance().getDownloadDir() == null){
                     showSelectDownloadFolderDialog();
                 }
                 else{
@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
                                 App.getInstance().getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                                 App.getInstance().getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                             }
-                            Preferences.getInstance().saveDownloadLocation(treeUri);
+                            Preferences.getInstance().setDownloadDir(treeUri);
                             handleStart();
                             return;
                         }

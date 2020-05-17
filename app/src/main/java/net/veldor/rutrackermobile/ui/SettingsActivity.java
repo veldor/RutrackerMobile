@@ -119,7 +119,7 @@ public class SettingsActivity extends FragmentActivity {
                 // выбор папки для загрузки торрент-файлов
                 mFolderChooser = new Preference(activity);
 
-                mFolderChooser.setSummary(Preferences.getInstance().getDownloadFolder().getUri().toString());
+                mFolderChooser.setSummary(Preferences.getInstance().getDownloadDir().getUri().toString());
                 mFolderChooser.setKey(SettingsActivity.KEY_CHANGE_DOWNLOAD_FOLDER);
                 mFolderChooser.setTitle(getString(R.string.download_folder_pref_label));
                 rootScreen.addPreference(mFolderChooser);
@@ -173,7 +173,7 @@ public class SettingsActivity extends FragmentActivity {
                                     App.getInstance().getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                                 }
                                 mFolderChooser.setSummary(treeUri.toString());
-                                Preferences.getInstance().saveDownloadLocation(treeUri);
+                                Preferences.getInstance().setDownloadDir(treeUri);
                             }
                         }
 
