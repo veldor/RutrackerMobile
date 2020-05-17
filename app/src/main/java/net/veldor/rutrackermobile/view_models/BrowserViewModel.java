@@ -1,7 +1,6 @@
 package net.veldor.rutrackermobile.view_models;
 
 import android.content.Intent;
-import android.util.Log;
 
 import androidx.lifecycle.ViewModel;
 import androidx.work.Constraints;

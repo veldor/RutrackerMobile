@@ -70,6 +70,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
     private ImageButton mBackButton, mForwardButton;
     private RecyclerView mRecycler;
     private View mHomeView;
+    private View mScrollView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -79,20 +80,21 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
         mPager = findViewById(R.id.pagesScrollView);
         mPagerRoot = findViewById(R.id.pagerView);
         mBackButton = findViewById(R.id.prevPage);
+        mScrollView = findViewById(R.id.mainScrollView);
         mBackButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int nextPageNum = sCurrentPage - 1;
                 if (mLastLoadedPage != null) {
                     if (mLastLoadedPage.startsWith("https://rutracker.org/forum/viewforum.php?f")) {
-                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false);
+                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false, true);
                         sCurrentPage = nextPageNum;
                         return;
                     }
                 } else {
                     mLastLoadedPage = App.getInstance().mHistory.peek();
                     if (mLastLoadedPage != null) {
-                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false);
+                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false, true);
                         sCurrentPage = nextPageNum;
                         return;
                     }
@@ -102,7 +104,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                     while (counter <= sSearchResultsArray.size()) {
                         counter++;
                         if (sCurrentPage == counter) {
-                            loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(counter - 1) + "&nm=" + sLastSearchString, false);
+                            loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(counter - 1) + "&nm=" + sLastSearchString, false, true);
                             if (counter == 1) {
                                 sCurrentPage = 1;
                             } else {
@@ -121,14 +123,14 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                 int nextPageNum = sCurrentPage + 1;
                 if (mLastLoadedPage != null) {
                     if (mLastLoadedPage.startsWith("https://rutracker.org/forum/viewforum.php?f")) {
-                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false);
+                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false, true);
                         sCurrentPage = nextPageNum;
                         return;
                     }
                 } else {
                     mLastLoadedPage = App.getInstance().mHistory.peek();
                     if (mLastLoadedPage != null) {
-                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false);
+                        loadPage(mLastLoadedPage + "&start=" + (nextPageNum * 50 - 50), false, true);
                         sCurrentPage = nextPageNum;
                     }
                     return;
@@ -138,7 +140,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                     while (counter <= sSearchResultsArray.size()) {
                         counter++;
                         if (sCurrentPage == counter) {
-                            loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(counter + 1) + "&nm=" + sLastSearchString, false);
+                            loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(counter + 1) + "&nm=" + sLastSearchString, false, true);
                             sCurrentPage = counter + 1;
                             return;
                         }
@@ -157,11 +159,11 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
             if (App.getInstance().externalUrl.startsWith("https://rutracker.org/forum/viewtopic.php?t=")) {
                 viewTopic(App.getInstance().externalUrl);
             } else {
-                loadPage(App.getInstance().externalUrl, true);
+                loadPage(App.getInstance().externalUrl, true, true);
             }
             App.getInstance().externalUrl = null;
         } else if (sFirstLoad) {
-            loadPage(App.RUTRACKER_MAIN_PAGE, true);
+            loadPage(App.RUTRACKER_MAIN_PAGE, true, true);
             sFirstLoad = false;
         }
         // проверю, залогинен ли пользователь, если нет- предложу войти
@@ -206,6 +208,9 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                 }
             }, 1000);
         }
+        else if(Preferences.getInstance().isRecyclerIntroViewed() && Preferences.getInstance().isSearchIntroShowed() && !Preferences.getInstance().isHomeIntroViewed()){
+            showHomeIntro();
+        }
     }
 
     private void prepareSearch() {
@@ -226,9 +231,6 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                     mAdapter.setItems(data);
                     if (!Preferences.getInstance().isRecyclerIntroViewed()) {
                         showRecyclerIntro();
-                    }
-                    else if(Preferences.getInstance().isRecyclerIntroViewed() && Preferences.getInstance().isSearchIntroShowed() && !Preferences.getInstance().isHomeIntroViewed()){
-                        showHomeIntro();
                     }
                     drawPages();
                     hidePageLoadDialog();
@@ -273,13 +275,13 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                             // перейду на нужную страницу
                             if (mLastLoadedPage != null) {
                                 if (mLastLoadedPage.startsWith("https://rutracker.org/forum/viewforum.php?f")) {
-                                    loadPage(mLastLoadedPage + "&start=" + (pageCount * 50 - 50), false);
+                                    loadPage(mLastLoadedPage + "&start=" + (pageCount * 50 - 50), false, true);
                                     sCurrentPage = pageCount;
                                 }
                             } else {
                                 mLastLoadedPage = App.getInstance().mHistory.peek();
                                 if (mLastLoadedPage != null) {
-                                    loadPage(mLastLoadedPage + "&start=" + (pageCount * 50 - 50), false);
+                                    loadPage(mLastLoadedPage + "&start=" + (pageCount * 50 - 50), false, true);
                                     sCurrentPage = pageCount;
                                 }
                             }
@@ -323,7 +325,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                     button.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(finalCountedPage) + "&nm=" + sLastSearchString, false);
+                            loadPage(App.RUTRACKER_BASE + sSearchResultsArray.get(finalCountedPage) + "&nm=" + sLastSearchString, false, true);
                             sCurrentPage = finalPageNumber;
                         }
                     });
@@ -370,10 +372,13 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
         }
     }
 
-    public void loadPage(String url, boolean resetPager) {
+    public void loadPage(String url, boolean resetPager, boolean scrollToTop) {
         sSearchResultsArray = null;
         Log.d("surprise", "BrowserActivity loadPage: " + url);
-        mRecycler.scrollToPosition(0);
+        if(scrollToTop && mLastLoadedPage != null && !mLastLoadedPage.equals(App.RUTRACKER_MAIN_PAGE)){
+            mScrollView.scrollTo(0,0);
+        }
+
         if (resetPager) {
             sCurrentPage = 1;
         }
@@ -486,7 +491,7 @@ public class BrowserActivity extends AppCompatActivity implements SearchView.OnQ
                 return true;
             case R.id.goHome:
                 // перейду на главную
-                loadPage(App.RUTRACKER_MAIN_PAGE, true);
+                loadPage(App.RUTRACKER_MAIN_PAGE, true, true);
                 return true;
         }
         return super.onOptionsItemSelected(item);

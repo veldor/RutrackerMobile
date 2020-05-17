@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -14,8 +13,6 @@ import androidx.documentfile.provider.DocumentFile;
 import net.veldor.rutrackermobile.App;
 import net.veldor.rutrackermobile.utils.TorrentOpener;
 import net.veldor.rutrackermobile.utils.TorrentSharer;
-
-import java.io.File;
 
 
 public class TorrentActionsReceiver extends BroadcastReceiver {
@@ -44,7 +41,8 @@ public class TorrentActionsReceiver extends BroadcastReceiver {
             Log.d("surprise", "TorrentActionsReceiver onReceive: Url is " + url);
             if(url != null){
                 Uri uri = Uri.parse(url);
-                DocumentFile torrent = DocumentFile.fromSingleUri(App.getInstance(), uri);
+                Log.d("surprise", "TorrentActionsReceiver onReceive: parsedUrl " + uri);
+                DocumentFile torrent = DocumentFile.fromTreeUri(App.getInstance(), uri);
                 if(torrent != null && torrent.isFile()){
                     if(actionType.equals(ACTION_TYPE_OPEN)){
                         TorrentOpener.requestOpen(torrent);

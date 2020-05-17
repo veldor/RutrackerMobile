@@ -101,7 +101,7 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
                             if (mItem.isPageLink()) {
                                 mActivity.viewTopic(App.RUTRACKER_BASE + mItem.getUrl());
                             } else {
-                                mActivity.loadPage(App.RUTRACKER_BASE + mItem.getUrl(), true);
+                                mActivity.loadPage(App.RUTRACKER_BASE + mItem.getUrl(), true, true);
                             }
 
                         }
@@ -158,7 +158,7 @@ public class BrowserAdapter extends RecyclerView.Adapter<BrowserAdapter.ViewHold
                                             @Override
                                             public boolean onMenuItemClick(MenuItem menuItem) {
                                                 Log.d("surprise", "ViewHolder onMenuItemClick: category link is " + mItem.getCategoryLink());
-                                                mActivity.loadPage(App.RUTRACKER_BASE + mItem.getCategoryLink(), true);
+                                                mActivity.loadPage(App.RUTRACKER_BASE + mItem.getCategoryLink(), true, true);
                                                 return false;
                                             }
                                         });

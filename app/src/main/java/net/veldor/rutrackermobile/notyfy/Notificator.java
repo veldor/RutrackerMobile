@@ -7,7 +7,9 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 import androidx.documentfile.provider.DocumentFile;
@@ -60,6 +62,7 @@ public class Notificator {
         String torrentUri = torrent.getUri().toString();
         // создам интент для функции отправки файла
         Intent shareIntent = new Intent(mContext, TorrentActionsReceiver.class);
+        shareIntent.setData(torrent.getUri());
         shareIntent.putExtra(TorrentActionsReceiver.EXTRA_ACTION_TYPE, TorrentActionsReceiver.ACTION_TYPE_SHARE);
         shareIntent.putExtra(TorrentActionsReceiver.TORRENT_URI, torrentUri);
         shareIntent.putExtra(TorrentActionsReceiver.EXTRA_NOTIFICATION_ID, mLastNotificationId);

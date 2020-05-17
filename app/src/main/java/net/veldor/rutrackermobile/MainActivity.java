@@ -1,17 +1,20 @@
 package net.veldor.rutrackermobile;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -29,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static final int REQUEST_WRITE_READ = 22;
+    private static final int DOWNLOAD_FOLDER_SELECT_REQUEST_CODE = 23;
     private MainViewModel mMyViewModel;
 
     @Override
@@ -42,7 +46,13 @@ public class MainActivity extends AppCompatActivity {
             // показываю диалог с требованием предоставить разрешения
             showPermissionDialog();
         } else {
-            handleStart();
+            // предложу выбрать папку для сохранения файлов
+            if(Preferences.getInstance().getDownloadFolder() == null){
+                showSelectDownloadFolderDialog();
+            }
+            else{
+                handleStart();
+            }
         }
 
         // проверю, не запущено ли приложение с помощью интента, если да- перейду на присланную страницу
@@ -137,7 +147,77 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        setupObservers();
+        if (requestCode == REQUEST_WRITE_READ && grantResults.length > 0) {
+            if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                showPermissionDialog();
+            } else {
+                // предложу выбрать папку для сохранения файлов
+                if(Preferences.getInstance().getDownloadFolder() == null){
+                    showSelectDownloadFolderDialog();
+                }
+                else{
+                    handleStart();
+                }
+            }
+        }
+        else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    private void showSelectDownloadFolderDialog() {
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(this);
+        dialogBuilder.setTitle("Выберите папку для сохранения")
+                .setMessage("Выберите папку, в которой будут храниться скачанные торренты")
+                .setCancelable(false)
+                .setPositiveButton("Ок", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                            intent.addFlags(
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                            |Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                                            |Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                                            |Intent.FLAG_GRANT_PREFIX_URI_PERMISSION
+                            );
+                            startActivityForResult(intent, DOWNLOAD_FOLDER_SELECT_REQUEST_CODE);
+                        }
+                    }
+                })
+                .setNegativeButton("Нет, закрыть приложение", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });
+        dialogBuilder.create().show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == DOWNLOAD_FOLDER_SELECT_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+                if (data != null) {
+                    Uri treeUri = data.getData();
+                    if (treeUri != null) {
+                        // проверю наличие файла
+                        DocumentFile dl = DocumentFile.fromTreeUri(App.getInstance(), treeUri);
+                        if(dl != null && dl.isDirectory()){
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                                App.getInstance().getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                                App.getInstance().getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                            }
+                            Preferences.getInstance().saveDownloadLocation(treeUri);
+                            handleStart();
+                            return;
+                        }
+                    }
+                }
+            }
+            showSelectDownloadFolderDialog();
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 }
 

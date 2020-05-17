@@ -2,7 +2,6 @@ package net.veldor.rutrackermobile.utils;
 
 import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -11,10 +10,7 @@ import androidx.documentfile.provider.DocumentFile;
 import net.veldor.rutrackermobile.App;
 import net.veldor.rutrackermobile.ui.SettingsActivity;
 
-import java.io.File;
-
 public class Preferences {
-    private static final File DEFAULT_DOWNLOAD_FOLDER_LOCATION = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
     private static final String PREFERENCE_DOWNLOAD_LOCATION = "download_location";
     public static final String TOR_FILES_LOCATION = "torfiles";
     private static final String CONTEXT_INTRO_SHOWED = "context intro showed";
@@ -75,9 +71,8 @@ public class Preferences {
                 }
             }
         }
-        Log.d("surprise", "Preferences getDownloadFolder: return default location");
         // верну путь к папке загрузок
-        return DocumentFile.fromFile(DEFAULT_DOWNLOAD_FOLDER_LOCATION);
+        return null;
     }
 
     public void saveDownloadLocation(Uri uri) {
