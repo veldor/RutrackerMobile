@@ -209,11 +209,12 @@ public class PageParser {
         // для начала, попробую найти результаты поиска
         Elements searchResults = dom.select("div#search-results table tr.hl-tr");
         if (searchResults.size() > 0) {
-            Log.d("surprise", "PageParser parsePage: found search results!");
+            Log.d("surprise", "PageParser parsePage: found search results!" + searchResults.size());
             for (Element row :
                     searchResults) {
                 // заполню название
-                Elements torrentName = row.select(">td.t-title>div.t-title>a.tLink");
+                Elements torrentName = row.select(">td.t-title-col>div.t-title>a.tLink");
+                Log.d("surprise", "PageParser.java 217 parsePage: " + torrentName);
                 if (torrentName.size() == 1) {
                     item = new ViewListItem();
                     item.setType("Раздача");
